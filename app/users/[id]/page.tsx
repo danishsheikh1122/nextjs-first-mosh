@@ -1,11 +1,16 @@
 import React from "react";
-  interface Props {
+import { notFound } from "next/navigation";
+interface Props {
   params: {
     id: number;
   };
 }
 const page = ({ params }: Props) => {
   const { id } = params;
+
+  if (id >= 10) {
+    return notFound() ;
+  }
   return <div>{id}</div>;
 };
 
