@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="@localhost" uuid="7baf12fe-c622-4b62-88c8-1f985c497ebc">
-      <driver-ref>mysql_aurora_aws</driver-ref>
+    <data-source source="LOCAL" name="nextappwithmosh@localhost" uuid="2e8b2dc0-c05f-492e-bf3e-338016614a8a">
+      <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>software.aws.rds.jdbc.mysql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql:aws://localhost:3306</jdbc-url>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/nextappwithmosh</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

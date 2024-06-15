@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/prisma/client";
 import schema from "../schema";
+
 interface Props {
-  params: { id: number };
+  params: { id: string };
 }
 
 // interface PutData {
@@ -25,19 +27,19 @@ interface Props {
 // });
 const data = [
   {
-    id: 1,
+    id: "1",
     name: "Juan",
     age: 25,
     country: "Colombia",
   },
   {
-    id: 2,
+    id: "2",
     name: "dian",
     age: 25,
     country: "Colombia",
   },
   {
-    id: 2,
+    id: "2",
     name: "dian",
     age: 25,
     country: "Colombia",
@@ -53,55 +55,89 @@ const fetchData = async (id: number) => {
   return res;
 };
 
-export async function GET(request: NextRequest, { params: { id } }: Props) {
-  const res = await fetchData(id);
-  return NextResponse.json(res, { status: 200 });
+export async function GET(request: NextRequest, { params }: Props) {
+  const id = parseInt(params.id, 10);
+  const user = await prisma.users.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "user not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(user, { status: 200 });
 }
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
   // Validate the request body against the schema
   const validate = schema.safeParse(body);
-  if(!validate.success){
-    return NextResponse.json(validate.error.errors,{status: 404});
+  if (!validate.success) {
+    return NextResponse.json(validate.error.errors, { status: 404 });
   }
   // Add validated body to data array
   data.push(body);
   return NextResponse.json(data, { status: 201 });
 }
-export async function PUT(request: NextRequest, { params: { id } }: Props) {
-  const body = await request.json();
-  const validate = schema.safeParse(body);
-  if(!validate.success){
-    return NextResponse.json(validate.error.errors,{status: 404});
+export async function PUT(request: NextRequest, { params }: Props) {
+  try {
+    const id = parseInt(params.id, 10);
+    const body = await request.json();
+    const validate = schema.safeParse(body);
+    if (!validate.success) {
+      return NextResponse.json(validate.error.errors, { status: 404 });
+    }
+    // if (!body.name) return NextResponse.json({ error: "Invalid name" });
+    // if (!body.age) return NextResponse.json({ error: "Invalid age" });
+    // if (!body.country) return NextResponse.json({ error: "Invalid country" });
+    console.log(body);
+    const res = await prisma.users.update({
+      where: {
+        id: id,
+      },
+      data: {
+        email: body.email,
+        name: body.name,
+        followers: body.followers,
+      },
+    });
+    // const newBody = {
+    //   ...res,
+    //   name: body.name,
+    //   age: body.age,
+    //   address: {
+    //     city: body.country,
+    //   },
+    // };
+    return NextResponse.json(res, { status: 200 });
+  } catch (e) {
+    return NextResponse.json({ error: "user not found" }, { status: 404 });
   }
-  // if (!body.name) return NextResponse.json({ error: "Invalid name" });
-  // if (!body.age) return NextResponse.json({ error: "Invalid age" });
-  // if (!body.country) return NextResponse.json({ error: "Invalid country" });
-  console.log(body);
-  const res = await fetchData(id);
-  const newBody = {
-    ...res,
-    name: body.name,
-    age: body.age,
-    address: {
-      city: body.country,
-    },
-  };
-  return NextResponse.json(newBody, { status: 200 });
 }
 
-export async function DELETE(request: NextRequest, { params: { id } }: Props) {
+export async function DELETE(request: NextRequest, { params }: Props) {
   //   const res = await fetchData(id);
 
-  const toStore = data.filter((data) => {
-    if (data.id !== id) {
-      return data;
-    }
+  // const toStore = data.filter((data) => {
+  //   // const id = parseInt(id, 10);
+  //   if (data.id == id) {
+  //     return data;
+  //   }
+  // });
+  // const newData = [...toStore];
+  // console.log(newData);
+
+  // return NextResponse.json(, { status: 200 });
+  const id = parseInt(params.id, 10);
+  const res = await prisma.users.delete({
+    where: { id: id },
   });
-  const newData = [...toStore];
-  console.log(newData);
-
-  return NextResponse.json(newData, { status: 200 });
+  if (!res)
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  return NextResponse.json(
+    { message: "deleted user", data: res },
+    { status: 200 }
+  );
 }
-

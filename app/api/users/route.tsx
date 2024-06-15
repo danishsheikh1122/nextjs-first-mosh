@@ -1,34 +1,46 @@
-import { NodeNextResponse } from "next/dist/server/base-http/node";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import sechma from './schema';
+import prisma from '@/prisma/client'; // Adjust the import path to match your project structure
+import schema from './schema';
 
-const data = [
-  { h1: "All Users" },
-  {
-    name: "Juan",
-    age: 25,
-    country: "Colombia",
-  },
-  {
-    name: "dian",
-    age: 25,
-    country: "Colombia",
-  },
-];
-export function GET(request: NextRequest) {
-  return NextResponse.json(data, { status: 200 });
+export async function GET(request: NextRequest) {
+  try {
+    const users = await prisma.users.findMany();
+    return NextResponse.json(users, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return NextResponse.json({ error: 'An error occurred while fetching users' }, { status: 500 });
+  }
 }
-interface Props {
-  params: { id: number };
-}
-interface PostData {
-  name: string;
-  age: number;
-  country: string;
-}
+
+// interface PostData {
+//   name: string;
+//   age: number;
+//   country: string;
+// }
+
 export async function POST(request: NextRequest) {
-  const body: PostData = await request.json();
-  if (!body.name)
-    return NextResponse.json({ error: "invalid name" }, { status: 404 });
-  data.push(body);
-  return NextResponse.json(data, { status: 201 });
+  try {
+    const body = await request.json();
+    const isValid=schema.safeParse(body);
+    if (!isValid.success) {
+      return NextResponse.json({ error:isValid.error.errors}, { status: 400 });
+    }
+
+    const newUser = await prisma.users.create({
+      data: {
+        name: body.name,
+        email: `${body.name.toLowerCase()}@example.com`, // Example email creation logic
+        followers: body.followers,
+        isActive: true,
+      },
+    });
+
+    return NextResponse.json(newUser, { status: 201 });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return NextResponse.json({ error: 'An error occurred while creating user' }, { status: 500 });
+  }
 }
+
+
